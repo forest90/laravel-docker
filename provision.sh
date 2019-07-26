@@ -41,7 +41,7 @@ sudo echo 'root ALL=NOPASSWD: ALL' >> /etc/sudoers
 
 # Install admin tools
 sudo apt update
-sudo apt install net-tools
+sudo apt install net-tools iputils-ping procps
 
 # Install Composer
 curl -sS https://getcomposer.org/installer | php
@@ -54,7 +54,8 @@ printf "\nPATH=\"/home/admin/.composer/vendor/bin:\$PATH\"\n"
 git clone https://github.com/tj/n.git /n
 cd /n
 make install
-n stable
+n 7 # node-sass (npm install) will not work with higher version of node
+npm i -g npm@3.10.10 # this version is required for proper work of gulp
 npm install -g gulp
 npm install -g bower
 cd /var/www/html

@@ -76,10 +76,6 @@ RUN a2enmod rewrite
 
 ADD ./config/apacheenvvars /etc/apache2/envvars
 
-RUN sudo n 10
-
-RUN apt-get update && apt-get install -y iputils-ping procps
-
 USER admin
 
 RUN sudo service apache2 stop
