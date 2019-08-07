@@ -70,6 +70,10 @@ RUN a2enconf servername
 
 RUN a2enmod rewrite ssl
 
+ADD ./config/enxdebug.sh /enxdebug.sh
+
+RUN ["chmod", "+x", "/enxdebug.sh"]
+
 
                     # Run services
 
