@@ -18,13 +18,13 @@ RUN ["sh", "/provision.sh"]
 
 RUN apt-get install -y libfreetype6-dev libjpeg-dev libpng-dev libwebp-dev
 
-RUN apt-get install -y libmcrypt-dev libpng-dev libxslt-dev zlib1g-dev
+RUN apt-get install -y libmcrypt-dev libldap2-dev libxslt-dev zlib1g-dev
 
-RUN docker-php-ext-install -j$(nproc) gd
+RUN apt-get install -y libjpeg62-turbo-dev libgmp-dev
 
 RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ --with-png-dir=/usr/inclue/ --with-webp-dir=/usr/include/
 
-RUN docker-php-ext-install -j$(nproc) mcrypt mysqli pdo_mysql xsl zip bcmath pcntl
+RUN docker-php-ext-install -j$(nproc) gd gmp ldap sysvmsg exif pdo pdo_mysql mcrypt mysqli xsl zip bcmath pcntl
 
 RUN pecl install redis-3.1.1
 
@@ -68,9 +68,7 @@ RUN echo "ServerName localhost" | tee /etc/apache2/conf-available/servername.con
 
 RUN a2enconf servername
 
-RUN a2enmod rewrite
-
-RUN a2enmod ssl
+RUN a2enmod rewrite ssl
 
 
                     # Run services
@@ -78,14 +76,7 @@ RUN a2enmod ssl
 
 ADD ./config/apacheenvvars /etc/apache2/envvars
 
-USER admin
-
-RUN sudo service apache2 stop
-
-RUN sudo service apache2 force-reload || true
-
-RUN sudo service apache2 start
-
 USER root
 
+RUN service apache2 restart
 
