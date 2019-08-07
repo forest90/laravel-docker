@@ -19,7 +19,7 @@ echo "N" | apt-get install -y sudo
 
 apt-get install -y wget nano curl \
 git apt-utils zip unzip python-pip make python2.7-dev \
-apt-transport-https lsof apt-utils
+apt-transport-https lsof apt-utils sass
 
 #git-flow re2c supervisor unattended-upgrades whois vim lsb-release ca-certificates
 #software-properties-common build-essential dos2unix gcc 
@@ -55,7 +55,7 @@ git clone https://github.com/tj/n.git /n
 cd /n
 make install
 n 7 # node-sass (npm install) will not work with higher version of node
-npm i -g npm@3.10.10 # this version is required for proper work of gulp
+npm i -g npm@5.8.0 # this version is required for proper work of gulp
 npm install -g gulp
 npm install -g bower
 cd /var/www/html
