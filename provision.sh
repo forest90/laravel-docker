@@ -55,7 +55,7 @@ git clone https://github.com/tj/n.git /n
 cd /n
 make install
 n 7 # node-sass (npm install) will not work with higher version of node
-npm i -g npm@5.8.0 # this version is required for proper work of gulp
+npm i -g npm@6 # this version is required for proper work of gulp
 npm install -g gulp
 npm install -g bower
 cd /var/www/html

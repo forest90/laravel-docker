@@ -70,6 +70,8 @@ RUN a2enconf servername
 
 RUN a2enmod rewrite
 
+RUN a2enmod ssl
+
 
                     # Run services
 
