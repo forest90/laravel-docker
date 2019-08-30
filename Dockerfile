@@ -26,9 +26,15 @@ RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-di
 
 RUN docker-php-ext-install -j$(nproc) gd gmp ldap sysvmsg exif pdo pdo_mysql mcrypt mysqli xsl zip bcmath pcntl
 
+RUN apt-get purge -y zlib1g-dev libpng-dev libfreetype6-dev libjpeg62-turbo-dev libmcrypt-dev 
+
+RUN apt-get autoremove -y
+
 RUN pecl install redis-3.1.1
 
 RUN docker-php-ext-enable redis
+
+RUN apt-get install -y libarchive-tools
 
 
                     # Config system
@@ -49,6 +55,10 @@ ENV APACHE_RUN_USER=#1000
 ENV APACHE_RUN_GROUP=#1000
 
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+
+ENV TRANSLATIONS_SERVICE https://confluence.hivesm.com/export
+
+RUN echo "alias uplang='wget -qO- \$TRANSLATIONS_SERVICE | bsdtar -xvf-'" >> /etc/bash.bashrc
 
 RUN mkdir -p /var/www/html/public
 
