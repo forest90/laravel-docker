@@ -18,15 +18,19 @@ RUN ["sh", "/provision.sh"]
 
 RUN apt-get install -y libfreetype6-dev libjpeg-dev libpng-dev libwebp-dev
 
-RUN apt-get install -y libmcrypt-dev libldap2-dev libxslt-dev zlib1g-dev
+RUN apt-get update && apt-get install -y --fix-missing libmcrypt-dev libldap2-dev libxslt-dev gnupg
 
-RUN apt-get install -y libjpeg62-turbo-dev libgmp-dev libarchive-tools
+RUN echo "deb http://packages.dotdeb.org jessie all" >> /etc/apt/sources.list
+
+RUN echo "deb-src http://packages.dotdeb.org jessie all" >> /etc/apt/sources.list
+
+RUN curl -sS --insecure https://www.dotdeb.org/dotdeb.gpg | apt-key add -
+
+RUN apt-get install -y libjpeg62-turbo-dev libgmp-dev zlib1g-dev libzip-dev
 
 RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ --with-png-dir=/usr/inclue/ --with-webp-dir=/usr/include/
 
 RUN docker-php-ext-install -j$(nproc) gd gmp ldap sysvmsg exif pdo pdo_mysql mcrypt mysqli xsl zip bcmath pcntl
-
-RUN apt-get purge -y zlib1g-dev libpng-dev libfreetype6-dev libjpeg62-turbo-dev libmcrypt-dev
 
 RUN apt-get autoremove -y
 

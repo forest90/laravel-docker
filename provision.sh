@@ -17,7 +17,7 @@ ln -sf /usr/share/zoneinfo/Poland /etc/localtime
 # Basic packages
 echo "N" | apt-get install -y sudo
 
-apt-get install -y wget nano curl \
+apt-get install -y wget nano curl libarchive-tools \
 git apt-utils zip unzip python-pip make python2.7-dev \
 apt-transport-https lsof apt-utils sass
 
