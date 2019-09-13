@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+echo "
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+" >> /etc/bash.bashrc
+
+ln -sf /usr/share/zoneinfo/Poland /etc/localtime
+
+                  # Create admin user
+
+adduser admin
+
+usermod -p $(echo pas | openssl passwd -1 -stdin) admin
+
+usermod -a -G sudo admin
+
+usermod -a -G www-data admin 
+
+echo 'admin ALL=NOPASSWD: ALL' >> /etc/sudoers
+
+echo 'root ALL=NOPASSWD: ALL' >> /etc/sudoers
+
+mkdir -p /var/www/html
+
+chown -R admin:admin /var/www/html
+
+chmod -R 764 /var/www/html
+

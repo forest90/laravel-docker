@@ -1,98 +1,57 @@
-FROM php:7.1-apache
+FROM ubuntu:bionic
 
-ARG DEBIAN_FRONTED=noninteractive
+# Fixes some weird terminal issues such as broken clear / CTRL+L
+ENV TERM=linux
 
-
-                    # Install cli programs
-
-
-ADD ./provision.sh /provision.sh
-
-RUN ["chmod", "+x", "/provision.sh"]
-
-RUN ["sh", "/provision.sh"]
-
-
-                    # Install php ext
-
-
-RUN apt-get install -y libfreetype6-dev libjpeg-dev libpng-dev libwebp-dev
-
-RUN apt-get update && apt-get install -y --fix-missing libmcrypt-dev libldap2-dev libxslt-dev gnupg
-
-RUN echo "deb http://packages.dotdeb.org jessie all" >> /etc/apt/sources.list
-
-RUN echo "deb-src http://packages.dotdeb.org jessie all" >> /etc/apt/sources.list
-
-RUN curl -sS --insecure https://www.dotdeb.org/dotdeb.gpg | apt-key add -
-
-RUN apt-get install -y libjpeg62-turbo-dev libgmp-dev zlib1g-dev libzip-dev
-
-RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ --with-png-dir=/usr/inclue/ --with-webp-dir=/usr/include/
-
-RUN docker-php-ext-install -j$(nproc) gd gmp ldap sysvmsg exif pdo pdo_mysql mcrypt mysqli xsl zip bcmath pcntl
-
-RUN apt-get autoremove -y
-
-RUN pecl install redis-3.1.1
-
-RUN docker-php-ext-enable redis
+# Install Ondrej repos for Ubuntu Bionic, PHP7.2, composer and selected extensions - better selection than
+# the distro's packages
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gnupg \
+    && echo "deb http://ppa.launchpad.net/ondrej/php/ubuntu bionic main" > /etc/apt/sources.list.d/ondrej-php.list \
+    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C \
+    && apt-get update \
+    && apt-get update \
+    && apt-get -y --no-install-recommends install curl ca-certificates unzip \
+        php7.2-cli php7.2-curl php-apcu php-apcu-bc \
+        php7.2-json php7.2-mbstring php7.2-opcache php7.2-readline php7.2-xml php7.2-zip php7.2-redis \
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
+    && composer global require hirak/prestissimo \
+    && composer clear-cache \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* ~/.composer
 
 
-                    # Config system
+# Install FPM
+RUN export DEBIAN_FRONTEND=noninteractive \
+    && apt-get update \
+    && apt-get -y --no-install-recommends install php7.2-fpm \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
+# PHP-FPM packages need a nudge to make them docker-friendly
+COPY overrides.conf /etc/php/7.2/fpm/pool.d/z-overrides.conf
+COPY custom.ini /etc/php/7.2/fpm/conf.d/custom.ini
 
+# INIT CUSTOM USER TO RUN PHP UNDER
+COPY provision /var/www/html/provision
+RUN chmod +x /var/www/html/provision
+RUN /var/www/html/provision
+RUN rm /var/www/html/provision
+
+# PHP-FPM has really dirty logs, certainly not good for dockerising
+# The following startup script contains some magic to clean these up
+COPY php-fpm-startup /usr/bin/php-fpm
+RUN chmod +x /usr/bin/php-fpm
+CMD /usr/bin/php-fpm
+
+# Open up fcgi port
+EXPOSE 9000
+
+# Config system
 RUN LANG="en_US.utf8"
-
-RUN ln -s /usr/local/bin/php /bin/php
-
-RUN ln -s /usr/local/bin/php /usr/bin/php
-
-COPY config/php.ini /usr/local/etc/php/
-
-ENV APACHE_SERVERNAME=localhost
-
-ENV APACHE_RUN_USER=#1000
-
-ENV APACHE_RUN_GROUP=#1000
-
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 
 ENV TRANSLATIONS_SERVICE https://confluence.hivesm.com/export
 
 RUN echo "alias uplang='wget -qO- \$TRANSLATIONS_SERVICE | bsdtar -xvf-'" >> /etc/bash.bashrc
 
-RUN mkdir -p /var/www/html/public
-
 WORKDIR /var/www/html
-
-RUN chown -R admin:admin /var/www/html
-
-RUN chmod -R 764 /var/www/html
-
-
-                    # Setup services
-
-
-ADD ./config/default.conf /etc/apache2/sites-available/000-default.conf
-
-RUN echo "ServerName localhost" | tee /etc/apache2/conf-available/servername.conf
-
-RUN a2enconf servername
-
-RUN a2enmod rewrite ssl
-
-ADD ./config/enxdebug.sh /enxdebug.sh
-
-RUN ["chmod", "+x", "/enxdebug.sh"]
-
-
-                    # Run services
-
-
-ADD ./config/apacheenvvars /etc/apache2/envvars
-
-USER root
-
-RUN service apache2 restart
-
